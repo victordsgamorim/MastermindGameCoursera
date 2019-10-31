@@ -1,4 +1,4 @@
-#Project
+# Project
 
 ## Introduction
 ##### This code consist of the resolution of the challenge offered by JetBrains in their Kotlin Course on Coursera or visit: 
