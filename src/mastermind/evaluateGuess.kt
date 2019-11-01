@@ -1,65 +1,125 @@
 package mastermind
 
-import java.lang.StringBuilder
-
 data class Evaluation(val rightPosition: Int, val wrongPosition: Int)
+
+private lateinit var secretArray: CharArray
 
 fun evaluateGuess(secret: String, guess: String): Evaluation {
 
-    val secretArray = convertSecretIntoCharArray(secret)
+    secretArray = convertCodeStringToCharArray(secret)
 
-    val feedback = StringBuilder()
+    val isEqual = IntArray(secret.length)
 
-    var position = 0
+    var rightLetter = 0
+    var rightLetterAndPosition = 0
+    var rightLetterNotPosition = 0
+    var wrongLetter = 0
 
-    var countRightWord = 0
-    var countWrongWord = 0
-    var countRightWordAndPosition = 0
-    var countRightWordNotPosition = 0
+    var index = 0
 
-    for (i in guess) {
 
-        val s = secretArray[position]
+    for (letter in guess) {
 
-        when (i) {
-            in secretArray -> {
+        val secretLetter = secretArray.elementAt(index = index)
+        when (letter) {
+            secretLetter -> {
 
-                when(i){
-                    s -> {
-                        secretArray[position] = ' '
-                        feedback.append("Letter $i and position is right! \n")
-                        countRightWord += 1
-                        countRightWordAndPosition += 1
-                    }
-                    else -> {
-                        feedback.append("Letter $i is in the wrong position! \n")
-                        countRightWord += 1
-                        countRightWordNotPosition += 1
-                    }
-                }
+                val counter = letterWithSameIndexCounter(
+                    letterCounter = rightLetter,
+                    positionCounter = rightLetterAndPosition,
+                    marker = isEqual,
+                    index = index)
+
+                rightLetter = counter.first
+                rightLetterAndPosition = counter.second
             }
-            else -> {
-                countWrongWord += 1
-                feedback.append("There is no letter $i in the code! \n")
-            }
+            else -> isEqual[index] = 0
         }
+        index += 1
+    }
 
+    var gPosition = 0
+
+    for (letter in guess) {
+
+        var sPosition = 0
+        var notEqualLetterCounter = secret.length
+
+        for (secret in secretArray) {
+
+            val hasCounted = isEqual[sPosition]
+
+            if (isEqual[gPosition] > 0) {
+                break
+            } else if (letter == secret && hasCounted == 0) {
+                rightLetterNotPosition = letterWithDifferentPositionCounter(
+                    letterCounter = rightLetter,
+                    positionCounter = rightLetterNotPosition,
+                    index = sPosition)
+                break
+            } else {
+                notEqualLetterCounter = notSecretLetter(
+                    counter = notEqualLetterCounter, letterCounter = wrongLetter)
+            }
+            sPosition += 1
+        }
+        gPosition += 1
+    }
+
+    return Evaluation(rightPosition = rightLetterAndPosition, wrongPosition = rightLetterNotPosition)
+}
+
+private fun notSecretLetter(counter: Int, letterCounter: Int): Int {
+    var notEqualLetterCounter = counter
+    var wrongLetter1 = letterCounter
+
+    notEqualLetterCounter -= 1
+
+    when (notEqualLetterCounter) {
+        0 -> wrongLetter1 += 1
+    }
+
+    return notEqualLetterCounter
+}
+
+private fun letterWithDifferentPositionCounter(letterCounter: Int,
+                                               positionCounter: Int,
+                                               index: Int): Int {
+    var rightLetter = letterCounter
+    var rightLetterNotPosition = positionCounter
+
+    rightLetter += 1
+    rightLetterNotPosition += 1
+    secretArray[index] = ' '
+
+    return rightLetterNotPosition
+}
+
+private fun letterWithSameIndexCounter(letterCounter: Int,
+                                       positionCounter: Int,
+                                       marker: IntArray,
+                                       index: Int): Pair<Int, Int> {
+
+    var rightLetter = letterCounter
+    var rightPosition = positionCounter
+
+    rightLetter += 1
+    rightPosition += 1
+    marker[index] = 1
+    secretArray[index] = ' '
+
+    return Pair(rightLetter, rightPosition)
+}
+
+private fun convertCodeStringToCharArray(secret: String): CharArray {
+    val charArray = CharArray(secret.length)
+    var position = 0
+    for (i in secret) {
+        charArray[position] = i
         position += 1
     }
 
-    println(feedback)
-
-    return Evaluation(countRightWordAndPosition, countRightWordNotPosition)
+    return charArray
 }
 
-private fun convertSecretIntoCharArray(secret: String): CharArray {
-    val secretArray = CharArray(secret.length)
-    var charArrayPosition = 0
-
-    for (i in secret) {
-        secretArray[charArrayPosition] = i
-        charArrayPosition += 1
-    }
-    return secretArray
-}
 
