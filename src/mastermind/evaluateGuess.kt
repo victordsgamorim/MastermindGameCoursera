@@ -1,10 +1,14 @@
 package mastermind
 
+import java.lang.StringBuilder
+
 data class Evaluation(val rightPosition: Int, val wrongPosition: Int)
 
 private lateinit var secretArray: CharArray
 
 fun evaluateGuess(secret: String, guess: String): Evaluation {
+
+    val feedback = StringBuilder()
 
     secretArray = convertCodeStringToCharArray(secret)
 
@@ -29,9 +33,10 @@ fun evaluateGuess(secret: String, guess: String): Evaluation {
                     positionCounter = rightLetterAndPosition,
                     marker = isEqual,
                     index = index)
-
                 rightLetter = counter.first
                 rightLetterAndPosition = counter.second
+
+                feedback.append("Letter $letter is right | Position $index is right \n")
             }
             else -> isEqual[index] = 0
         }
@@ -56,30 +61,27 @@ fun evaluateGuess(secret: String, guess: String): Evaluation {
                     letterCounter = rightLetter,
                     positionCounter = rightLetterNotPosition,
                     index = sPosition)
+
+                feedback.append("Letter $letter right | Position is wrong \n")
                 break
             } else {
-                notEqualLetterCounter = notSecretLetter(
-                    counter = notEqualLetterCounter, letterCounter = wrongLetter)
+                notEqualLetterCounter -= 1
+
+                when (notEqualLetterCounter) {
+                    0 -> {
+                        wrongLetter += 1
+                        feedback.append("Letter $letter not found \n")
+                    }
+                }
             }
             sPosition += 1
         }
         gPosition += 1
     }
 
+    println(feedback)
+
     return Evaluation(rightPosition = rightLetterAndPosition, wrongPosition = rightLetterNotPosition)
-}
-
-private fun notSecretLetter(counter: Int, letterCounter: Int): Int {
-    var notEqualLetterCounter = counter
-    var wrongLetter1 = letterCounter
-
-    notEqualLetterCounter -= 1
-
-    when (notEqualLetterCounter) {
-        0 -> wrongLetter1 += 1
-    }
-
-    return notEqualLetterCounter
 }
 
 private fun letterWithDifferentPositionCounter(letterCounter: Int,
